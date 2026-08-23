@@ -21,6 +21,8 @@ logging.basicConfig(
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s"
 )
 
+logger = logging.getLogger("main")
+
 
 # =========================================================
 # MAIN
@@ -29,7 +31,7 @@ logging.basicConfig(
 async def main():
 
     # =====================================================
-    # CHECK BOT TOKEN
+    # CHECK TOKEN
     # =====================================================
 
     if not BOT_TOKEN:
@@ -40,7 +42,7 @@ async def main():
 
 
     # =====================================================
-    # START MESSAGE
+    # START
     # =====================================================
 
     print()
@@ -50,7 +52,7 @@ async def main():
 
 
     # =====================================================
-    # BOT
+    # CREATE BOT
     # =====================================================
 
     bot = Bot(
@@ -59,14 +61,14 @@ async def main():
 
 
     # =====================================================
-    # DISPATCHER
+    # CREATE DISPATCHER
     # =====================================================
 
     dp = Dispatcher()
 
 
     # =====================================================
-    # HANDLER START
+    # REGISTER START HANDLER
     # =====================================================
 
     dp.include_router(
@@ -79,7 +81,7 @@ async def main():
 
 
     # =====================================================
-    # HANDLER SIGNAL
+    # REGISTER SIGNAL HANDLER
     # =====================================================
 
     dp.include_router(
@@ -92,7 +94,7 @@ async def main():
 
 
     # =====================================================
-    # HANDLER NEWS
+    # REGISTER NEWS HANDLER
     # =====================================================
 
     dp.include_router(
@@ -105,7 +107,7 @@ async def main():
 
 
     # =====================================================
-    # FUNDAMENTAL SCHEDULER
+    # START FUNDAMENTAL SCHEDULER
     # =====================================================
 
     scheduler_task = asyncio.create_task(
@@ -116,7 +118,6 @@ async def main():
         )
 
     )
-
 
     print(
         "📰 FUNDAMENTAL ENGINE ACTIVE"
@@ -131,19 +132,14 @@ async def main():
     # POLLING
     # =====================================================
 
+    print()
+    print("==========================================")
+    print("📡 TELEGRAM POLLING ACTIVE")
+    print("==========================================")
+    print()
+
+
     try:
-
-        print(
-            "=========================================="
-        )
-
-        print(
-            "📡 TELEGRAM POLLING ACTIVE"
-        )
-
-        print(
-            "=========================================="
-        )
 
         await dp.start_polling(
             bot
@@ -152,7 +148,7 @@ async def main():
 
     except asyncio.CancelledError:
 
-        print(
+        logger.info(
             "🛑 BOT POLLING CANCELLED"
         )
 
@@ -161,9 +157,9 @@ async def main():
 
     except Exception as e:
 
-        print(
-            "❌ POLLING ERROR:",
-            repr(e)
+        logger.exception(
+            "❌ POLLING ERROR: %s",
+            e
         )
 
         raise
@@ -171,11 +167,15 @@ async def main():
 
     finally:
 
-        # ================================================
-        # STOP SCHEDULER
-        # ================================================
+        # =================================================
+        # STOP FUNDAMENTAL SCHEDULER
+        # =================================================
 
         if not scheduler_task.done():
+
+            logger.info(
+                "🛑 Menghentikan fundamental scheduler..."
+            )
 
             scheduler_task.cancel()
 
@@ -188,15 +188,24 @@ async def main():
                 pass
 
 
-        # ================================================
+        # =================================================
         # CLOSE BOT SESSION
-        # ================================================
+        # =================================================
 
-        await bot.session.close()
+        try:
 
-        print(
-            "🛑 BOT STOPPED"
-        )
+            await bot.session.close()
+
+        except Exception as e:
+
+            logger.warning(
+                "⚠️ Gagal menutup bot session: %s",
+                e
+            )
+
+
+        print()
+        print("🛑 BOT STOPPED")
 
 
 # =========================================================
@@ -214,5 +223,5 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
 
         print(
-            "🛑 Bot dihentikan."
+            "🛑 Bot dihentikan oleh user."
         )
