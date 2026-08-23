@@ -1,0 +1,35 @@
+{
+    "HIGH": [
+        "FOMC",
+        "Federal Funds Rate",
+        "Interest Rate Decision",
+        "CPI",
+        "Core CPI",
+        "Nonfarm Payrolls",
+        "NFP",
+        "Unemployment Rate",
+        "PCE",
+        "Core PCE",
+        "GDP",
+        "Powell",
+        "FOMC Press Conference",
+        "FOMC Statement"
+    ],
+    "MEDIUM": [
+        "PPI",
+        "Core PPI",
+        "Retail Sales",
+        "Core Retail Sales",
+        "ISM Manufacturing PMI",
+        "ISM Services PMI",
+        "Consumer Confidence",
+        "JOLTS",
+        "ADP Employment"
+    ],
+    "LOW": [
+        "Building Permits",
+        "Housing Starts",
+        "Existing Home Sales",
+        "New Home Sales"
+    ]
+}
