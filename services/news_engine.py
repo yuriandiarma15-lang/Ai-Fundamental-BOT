@@ -1,124 +1,137 @@
-from services.news_sources import get_news
+from services.news_sources import (
+    get_all_news
+)
 
 
-CATEGORIES = [
-    "XAUUSD",
-    "FED",
-    "USD",
-    "CPI",
-    "NFP",
-    "PCE",
-]
-
-
-INCLUDE_KEYWORDS = [
-
-    "gold",
-    "xauusd",
-    "xau",
-
-    "federal reserve",
-    "fomc",
-    "powell",
-
-    "interest rate",
-    "fed rate",
-    "rate decision",
-
-    "cpi",
-    "inflation",
-    "pce",
-
-    "nonfarm payroll",
-    "non-farm payroll",
-    "nfp",
-
-    "unemployment",
-    "jobless claims",
-
-    "us dollar",
-    "usd",
-    "dollar",
-
-    "treasury yield",
-    "bond yield",
-
-]
-
-
-EXCLUDE_KEYWORDS = [
-
-    "bank application",
-    "application by",
-    "enforcement action",
-    "former employee",
-    "merger",
-    "acquisition",
-    "bancshares",
-    "branch",
-    "consent order",
-    "civil money penalty",
-
-]
-
+# =========================================================
+# COLLECT NEWS
+# =========================================================
 
 def collect_official_news():
 
-    all_news = []
-
-    for category in CATEGORIES:
-
-        try:
-
-            news = get_news(
-                category,
-                limit=10
-            )
-
-            all_news.extend(
-                news
-            )
-
-        except Exception as e:
-
-            print(
-                f"NEWS ERROR [{category}]:",
-                repr(e)
-            )
-
-    return all_news
-
-
-def is_high_impact_news(
-    title
-):
-
-    if not title:
-
-        return False
-
-    text = (
-        title
-        .lower()
-        .strip()
+    return get_all_news(
+        limit_per_category=10
     )
 
-    # Buang berita tidak relevan
+
+# =========================================================
+# HIGH IMPACT KEYWORDS
+# =========================================================
+
+HIGH_IMPACT_KEYWORDS = [
+
+    # FED
+
+    "fomc",
+    "federal reserve",
+    "fed rate",
+    "interest rate",
+    "rate decision",
+    "monetary policy",
+    "powell",
+    "jerome powell",
+
+    # INFLATION
+
+    "cpi",
+    "consumer price index",
+    "inflation",
+    "pce",
+    "core pce",
+    "ppi",
+    "producer price index",
+
+    # EMPLOYMENT
+
+    "nfp",
+    "nonfarm payroll",
+    "non-farm payroll",
+    "unemployment rate",
+    "jobless claims",
+    "employment report",
+
+    # GDP
+
+    "gdp",
+    "gross domestic product",
+
+    # GOLD / USD
+
+    "gold price",
+    "gold",
+    "xauusd",
+    "us dollar",
+    "usd"
+
+]
+
+
+# =========================================================
+# EXCLUDE
+# =========================================================
+
+EXCLUDE_KEYWORDS = [
+
+    "sports",
+    "football",
+    "soccer",
+    "basketball",
+    "celebrity",
+    "movie",
+    "entertainment",
+    "recipe",
+    "fashion",
+    "real estate",
+    "crypto casino"
+
+]
+
+
+# =========================================================
+# CHECK HIGH IMPACT
+# =========================================================
+
+def is_high_impact_news(
+    title,
+    description=""
+):
+
+    text = (
+
+        f"{title} "
+        f"{description}"
+
+    ).lower().strip()
+
+
+    # =====================================================
+    # EXCLUDE
+    # =====================================================
+
     for keyword in EXCLUDE_KEYWORDS:
 
         if keyword in text:
 
             return False
 
-    # Cari berita relevan
-    for keyword in INCLUDE_KEYWORDS:
+
+    # =====================================================
+    # HIGH IMPACT
+    # =====================================================
+
+    for keyword in HIGH_IMPACT_KEYWORDS:
 
         if keyword in text:
 
             return True
 
+
     return False
 
+
+# =========================================================
+# FIND HIGH IMPACT
+# =========================================================
 
 def find_high_impact_news(
     news_list
@@ -128,6 +141,7 @@ def find_high_impact_news(
 
     seen = set()
 
+
     for news in news_list:
 
         title = news.get(
@@ -135,30 +149,55 @@ def find_high_impact_news(
             ""
         )
 
+
+        description = news.get(
+            "description",
+            ""
+        )
+
+
         if not is_high_impact_news(
-            title
+
+            title,
+
+            description
+
         ):
 
             continue
 
+
         normalized = (
+
             title
             .lower()
             .strip()
+
         )
+
 
         if normalized in seen:
 
             continue
 
+
         seen.add(
             normalized
         )
 
+
         news["impact"] = "HIGH"
+
 
         results.append(
             news
         )
+
+
+    print(
+        f"🔥 HIGH IMPACT FILTER: "
+        f"{len(results)}"
+    )
+
 
     return results
