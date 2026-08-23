@@ -5,58 +5,50 @@ from config.settings import (
 )
 
 
-# =========================================================
-# GNEWS API
-# =========================================================
-
-GNEWS_URL = "https://gnews.io/api/v4/search"
+GNEWS_URL = (
+    "https://gnews.io/api/v4/search"
+)
 
 
 # =========================================================
-# SEARCH QUERY
-# KHUSUS YANG RELEVAN TERHADAP XAU / USD
+# QUERY
 # =========================================================
 
 SEARCHES = {
 
-    "XAUUSD":
-        'gold OR XAUUSD',
-
     "FED":
         '"Federal Reserve" OR FOMC OR Powell',
+
+    "CPI":
+        '"US CPI" OR "consumer price index"',
+
+    "NFP":
+        '"NFP" OR "nonfarm payroll"',
+
+    "PCE":
+        '"US PCE" OR "personal consumption expenditures"',
 
     "USD":
         '"US dollar" OR USD',
 
-    "CPI":
-        '"US CPI" OR inflation',
-
-    "NFP":
-        '"NFP" OR "nonfarm payrolls"',
-
-    "PCE":
-        '"US PCE" OR "PCE inflation"',
+    "XAUUSD":
+        '"gold price" OR XAUUSD',
 
 }
 
 
 # =========================================================
-# SOURCE NAME
+# GET SOURCE
 # =========================================================
 
-def get_source_name(
-    article
-):
+def get_source_name(article):
 
     source = article.get(
         "source",
         {}
     )
 
-    if isinstance(
-        source,
-        dict
-    ):
+    if isinstance(source, dict):
 
         return source.get(
             "name",
@@ -67,7 +59,7 @@ def get_source_name(
 
 
 # =========================================================
-# GET GNEWS
+# GET NEWS
 # =========================================================
 
 def get_news(
@@ -80,10 +72,6 @@ def get_news(
     )
 
 
-    # =====================================================
-    # CHECK API KEY
-    # =====================================================
-
     if not GNEWS_API_KEY:
 
         print(
@@ -93,10 +81,6 @@ def get_news(
         return []
 
 
-    # =====================================================
-    # QUERY
-    # =====================================================
-
     query = SEARCHES.get(
         category
     )
@@ -104,16 +88,8 @@ def get_news(
 
     if not query:
 
-        print(
-            f"❌ CATEGORY TIDAK DIKENAL: {category}"
-        )
-
         return []
 
-
-    # =====================================================
-    # PARAMETER
-    # =====================================================
 
     params = {
 
@@ -140,11 +116,6 @@ def get_news(
 
     try:
 
-        print(
-            f"📡 Menghubungkan GNews: {category}"
-        )
-
-
         response = requests.get(
 
             GNEWS_URL,
@@ -157,13 +128,10 @@ def get_news(
 
 
         print(
-            f"📡 GNews HTTP: {response.status_code}"
+            f"📡 GNews HTTP: "
+            f"{response.status_code}"
         )
 
-
-        # =================================================
-        # ERROR
-        # =================================================
 
         if response.status_code != 200:
 
@@ -174,10 +142,6 @@ def get_news(
 
             return []
 
-
-        # =================================================
-        # JSON
-        # =================================================
 
         data = response.json()
 
@@ -197,10 +161,6 @@ def get_news(
         results = []
 
 
-        # =================================================
-        # PARSE ARTICLES
-        # =================================================
-
         for article in articles:
 
             results.append({
@@ -217,12 +177,6 @@ def get_news(
                 "description":
                     article.get(
                         "description",
-                        ""
-                    ),
-
-                "content":
-                    article.get(
-                        "content",
                         ""
                     ),
 
@@ -244,20 +198,14 @@ def get_news(
                         ""
                     ),
 
-                "source":
-                    get_source_name(
-                        article
-                    ),
-
                 "source_name":
                     get_source_name(
                         article
                     ),
 
-                "image":
-                    article.get(
-                        "image",
-                        ""
+                "source":
+                    get_source_name(
+                        article
                     )
 
             })
@@ -266,16 +214,7 @@ def get_news(
         return results
 
 
-    except requests.Timeout:
-
-        print(
-            f"⏱️ GNEWS TIMEOUT: {category}"
-        )
-
-        return []
-
-
-    except requests.RequestException as e:
+    except Exception as e:
 
         print(
             "❌ GNEWS REQUEST ERROR:",
@@ -285,22 +224,12 @@ def get_news(
         return []
 
 
-    except Exception as e:
-
-        print(
-            "❌ GNEWS ERROR:",
-            repr(e)
-        )
-
-        return []
-
-
 # =========================================================
-# GET ALL RELEVANT NEWS
+# GET ALL NEWS
 # =========================================================
 
 def get_all_news(
-    limit_per_category: int = 10
+    limit_per_category=10
 ):
 
     print(
@@ -316,27 +245,10 @@ def get_all_news(
     )
 
 
-    categories = [
-
-        "XAUUSD",
-
-        "FED",
-
-        "USD",
-
-        "CPI",
-
-        "NFP",
-
-        "PCE",
-
-    ]
-
-
     all_news = []
 
 
-    for category in categories:
+    for category in SEARCHES:
 
         news = get_news(
 
@@ -347,15 +259,13 @@ def get_all_news(
         )
 
 
-        if news:
-
-            all_news.extend(
-                news
-            )
+        all_news.extend(
+            news
+        )
 
 
     # =====================================================
-    # REMOVE DUPLICATES
+    # REMOVE DUPLICATE
     # =====================================================
 
     unique = {}
@@ -368,12 +278,9 @@ def get_all_news(
         ).strip().lower()
 
 
-        if not title:
+        if title:
 
-            continue
-
-
-        unique[title] = item
+            unique[title] = item
 
 
     results = list(
@@ -382,13 +289,8 @@ def get_all_news(
 
 
     print(
-        f"📰 TOTAL GNEWS UNIQUE: "
+        f"📰 TOTAL UNIQUE: "
         f"{len(results)}"
-    )
-
-
-    print(
-        "=========================================="
     )
 
 
