@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 from aiogram import Router
 from aiogram.filters import Command
@@ -12,6 +13,8 @@ from services.news_engine import (
 
 router = Router()
 
+logger = logging.getLogger(__name__)
+
 
 # =========================================================
 # /NEWS
@@ -20,89 +23,89 @@ router = Router()
 @router.message(Command("news"))
 async def news_command(message: Message):
 
-    print("📰 /news DITERIMA")
+    logger.info(
+        "🔥 /news diterima dari user_id=%s",
+        message.from_user.id if message.from_user else "unknown"
+    )
 
     # =====================================================
-    # LOADING LANGSUNG
+    # 1. KIRIM LOADING TERLEBIH DAHULU
     # =====================================================
 
     loading = await message.answer(
         "📰 <b>XAU AI NEWS ENGINE</b>\n\n"
-        "⏳ <b>SEDANG MEMPROSES...</b>\n\n"
-        "📡 Mengambil berita terbaru...\n"
-        "🏦 Memeriksa Federal Reserve...\n"
-        "🏛️ Memeriksa U.S. Treasury...\n"
-        "📊 Memeriksa BLS...\n\n"
-        "Mohon tunggu sebentar...",
+        "⏳ <b>MEMPROSES...</b>\n\n"
+        "📡 Mengambil berita resmi...\n"
+        "🏦 Federal Reserve\n"
+        "🏛️ U.S. Treasury\n"
+        "📊 BLS\n\n"
+        "Mohon tunggu...",
         parse_mode="HTML"
     )
 
-    print("✅ Loading /news terkirim")
+    logger.info(
+        "✅ Loading /news berhasil dikirim | message_id=%s",
+        loading.message_id
+    )
 
     try:
 
         # =================================================
-        # ANIMASI LOADING
+        # 2. AMBIL DATA
         # =================================================
 
         await asyncio.sleep(0.5)
 
         await loading.edit_text(
             "📰 <b>XAU AI NEWS ENGINE</b>\n\n"
-            "⏳ <b>MENGAMBIL DATA RESMI...</b>\n\n"
-            "📡 Federal Reserve\n"
+            "⏳ <b>MENGAMBIL DATA...</b>\n\n"
+            "🔄 Menghubungi sumber resmi...\n"
+            "🏦 Federal Reserve\n"
             "🏛️ U.S. Treasury\n"
-            "📊 Bureau of Labor Statistics\n\n"
-            "Mohon tunggu...",
+            "📊 Bureau of Labor Statistics",
             parse_mode="HTML"
         )
-
-        # =================================================
-        # AMBIL NEWS
-        # =================================================
 
         news = await asyncio.to_thread(
             collect_official_news
         )
 
-        print(
-            f"📰 TOTAL NEWS: {len(news)}"
+        logger.info(
+            "📰 Total news: %s",
+            len(news)
         )
 
         # =================================================
-        # UPDATE LOADING
+        # 3. FILTER
         # =================================================
 
         await loading.edit_text(
             "📰 <b>XAU AI NEWS ENGINE</b>\n\n"
-            "✅ Data resmi berhasil diterima.\n\n"
+            "✅ Data berhasil diterima.\n\n"
             "🔎 <b>MEMFILTER NEWS...</b>\n\n"
             "💵 USD\n"
-            "🥇 XAUUSD / GOLD\n"
-            "🏦 Monetary Policy\n"
-            "📊 Economic Data\n\n"
-            "Mencari hanya berita yang berpotensi "
-            "berpengaruh terhadap Gold / USD...",
+            "🥇 GOLD / XAUUSD\n"
+            "🏦 FED\n"
+            "📊 ECONOMIC DATA\n\n"
+            "Mencari hanya berita yang "
+            "berpotensi memengaruhi Gold...",
             parse_mode="HTML"
         )
 
         await asyncio.sleep(0.5)
-
-        # =================================================
-        # FILTER HIGH IMPACT
-        # =================================================
 
         high_impact = await asyncio.to_thread(
             find_high_impact_news,
             news
         )
 
-        print(
-            f"🔥 HIGH IMPACT: {len(high_impact)}"
+        logger.info(
+            "🔥 High Impact: %s",
+            len(high_impact)
         )
 
         # =================================================
-        # TIDAK ADA NEWS
+        # 4. TIDAK ADA HASIL
         # =================================================
 
         if not high_impact:
@@ -111,8 +114,7 @@ async def news_command(message: Message):
                 "📰 <b>XAU AI NEWS ENGINE</b>\n\n"
                 "✅ Analisis selesai.\n\n"
                 "⚪ Tidak ditemukan High Impact News "
-                "yang relevan terhadap XAUUSD / USD "
-                "dari sumber resmi.\n\n"
+                "yang relevan terhadap XAUUSD / USD.\n\n"
                 "🤖 <b>XAU AI FUNDAMENTAL</b>",
                 parse_mode="HTML"
             )
@@ -120,7 +122,7 @@ async def news_command(message: Message):
             return
 
         # =================================================
-        # HASIL
+        # 5. HASIL
         # =================================================
 
         text = (
@@ -166,7 +168,7 @@ async def news_command(message: Message):
             text += "\n"
 
         text += (
-            "━━━━━━━━━━━━━━━━━━\n"
+            "━━━━━━━━━━━━━━━━━━\n\n"
             "🧠 <b>XAU AI FUNDAMENTAL</b>\n\n"
             "News difilter berdasarkan potensi "
             "dampaknya terhadap USD dan XAUUSD.\n\n"
@@ -175,18 +177,7 @@ async def news_command(message: Message):
         )
 
         # =================================================
-        # TELEGRAM LIMIT
-        # =================================================
-
-        if len(text) > 4000:
-
-            text = (
-                text[:3900]
-                + "\n\n..."
-            )
-
-        # =================================================
-        # GANTI LOADING → HASIL
+        # 6. GANTI LOADING MENJADI HASIL
         # =================================================
 
         await loading.edit_text(
@@ -195,30 +186,30 @@ async def news_command(message: Message):
             disable_web_page_preview=True
         )
 
-        print(
-            "✅ /news SELESAI"
+        logger.info(
+            "✅ /news selesai"
         )
 
     except Exception as e:
 
-        print(
-            "❌ NEWS ERROR:",
-            repr(e)
+        logger.exception(
+            "❌ /news ERROR"
         )
 
         try:
 
             await loading.edit_text(
                 "❌ <b>XAU AI NEWS ENGINE</b>\n\n"
-                "Terjadi kesalahan saat mengambil "
-                "atau menganalisis berita.\n\n"
-                "🔄 Silakan coba kembali.",
+                "Terjadi kesalahan ketika mengambil "
+                "data news.\n\n"
+                f"<code>{str(e)[:500]}</code>\n\n"
+                "🔄 Silakan coba lagi.",
                 parse_mode="HTML"
             )
 
         except Exception as edit_error:
 
-            print(
-                "❌ GAGAL EDIT LOADING:",
-                repr(edit_error)
+            logger.exception(
+                "❌ Tidak bisa edit pesan loading: %s",
+                edit_error
             )
