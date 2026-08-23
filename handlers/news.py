@@ -17,98 +17,157 @@ router = Router()
 # /NEWS
 # =========================================================
 
-@router.message(Command("news"))
-async def news_command(message: Message):
+@router.message(
+    Command("news")
+)
+async def news_command(
+    message: Message
+):
 
     print(
-        f"📰 /news RECEIVED | "
-        f"user_id={message.from_user.id if message.from_user else '-'}"
+        "📰 /news diterima"
     )
+
 
     # =====================================================
     # LOADING LANGSUNG
     # =====================================================
 
     loading = await message.answer(
+
         "📰 <b>XAU AI NEWS ENGINE</b>\n\n"
-        "⏳ <b>BOT SEDANG MEMPROSES...</b>\n\n"
+
+        "⏳ <b>Sedang memproses...</b>\n\n"
+
         "📡 Mengambil berita terbaru...\n"
         "🏦 Memeriksa Federal Reserve...\n"
         "🏛️ Memeriksa U.S. Treasury...\n"
         "📊 Memeriksa BLS...\n\n"
-        "Mohon tunggu...",
+
+        "Mohon tunggu sebentar...",
+
         parse_mode="HTML"
+
     )
 
+
     print(
-        "📰 Loading message berhasil dikirim."
+        "📰 Loading /news berhasil dikirim"
     )
+
 
     try:
 
         # =================================================
-        # STATUS 1
+        # LOADING ANIMATION
         # =================================================
+
+        await asyncio.sleep(
+            1
+        )
+
 
         await loading.edit_text(
+
             "📰 <b>XAU AI NEWS ENGINE</b>\n\n"
+
             "⏳ <b>MENGAMBIL BERITA...</b>\n\n"
-            "📡 Menghubungkan ke sumber resmi...",
+
+            "📡 Menghubungkan ke sumber resmi...\n"
+            "🏦 Federal Reserve\n"
+            "🏛️ U.S. Treasury\n"
+            "📊 Bureau of Labor Statistics",
+
             parse_mode="HTML"
+
         )
 
+
         # =================================================
-        # AMBIL BERITA
+        # AMBIL NEWS
+        #
+        # PENTING:
+        # dijalankan di thread supaya Telegram
+        # tidak ikut macet.
         # =================================================
 
-        news_list = await asyncio.to_thread(
+        news = await asyncio.to_thread(
+
             collect_official_news
+
         )
+
 
         print(
-            f"📰 Total news: {len(news_list)}"
+            f"📰 Total berita ditemukan: {len(news)}"
         )
 
 
         # =================================================
-        # STATUS 2
+        # UPDATE LOADING
         # =================================================
 
         await loading.edit_text(
+
             "📰 <b>XAU AI NEWS ENGINE</b>\n\n"
-            "✅ Berita berhasil diambil.\n\n"
-            "🔎 Sedang memfilter berita "
-            "yang berpengaruh terhadap XAUUSD...",
+
+            "✅ Data berita berhasil diperoleh.\n\n"
+
+            "🔎 <b>Menganalisis relevansi XAUUSD...</b>\n\n"
+
+            "💵 USD\n"
+            "🥇 Gold / XAUUSD\n"
+            "🏦 Federal Reserve\n"
+            "📊 Data ekonomi AS",
+
             parse_mode="HTML"
+
+        )
+
+
+        await asyncio.sleep(
+            0.8
         )
 
 
         # =================================================
-        # FILTER
+        # FILTER HIGH IMPACT
         # =================================================
 
         high_impact = await asyncio.to_thread(
+
             find_high_impact_news,
-            news_list
+
+            news
+
         )
 
+
         print(
-            f"🔥 High impact news: {len(high_impact)}"
+            f"🔥 High Impact ditemukan: {len(high_impact)}"
         )
 
 
         # =================================================
-        # TIDAK ADA HASIL
+        # TIDAK ADA NEWS
         # =================================================
 
         if not high_impact:
 
             await loading.edit_text(
-                "📰 <b>XAU AI NEWS ENGINE</b>\n\n"
+
+                "📰 <b>FUNDAMENTAL XAUUSD</b>\n\n"
+
                 "✅ Analisis selesai.\n\n"
-                "⚪ Tidak ditemukan berita High Impact "
-                "yang relevan terhadap XAUUSD saat ini.",
+
+                "⚪ Saat ini belum ditemukan "
+                "High Impact News yang relevan "
+                "terhadap XAUUSD dari sumber resmi.\n\n"
+
+                "🤖 <b>XAU AI FUNDAMENTAL</b>",
+
                 parse_mode="HTML"
+
             )
 
             return
@@ -118,80 +177,109 @@ async def news_command(message: Message):
         # HASIL
         # =================================================
 
-        lines = [
+        text = (
 
-            "📰 <b>XAU AI HIGH IMPACT NEWS</b>",
-            "",
-            "🇺🇸 <b>NEWS YANG BERDAMPAK KE XAUUSD</b>",
-            ""
-        ]
+            "📰 <b>XAU AI HIGH IMPACT NEWS</b>\n\n"
+
+            "🇺🇸 <b>NEWS YANG BERPENGARUH "
+            "TERHADAP XAUUSD / USD</b>\n\n"
+
+        )
 
 
-        for news in high_impact:
+        # Maksimal 5 berita
 
-            title = news.get(
+        for item in high_impact[:5]:
+
+            title = item.get(
                 "title",
                 "-"
             )
 
 
-            source_url = news.get(
+            link = item.get(
                 "source_url",
-                news.get(
+                item.get(
                     "link",
                     ""
                 )
             )
 
 
-            source_name = news.get(
+            source = item.get(
                 "source_name",
-                news.get(
+                item.get(
                     "source",
                     "Official Source"
                 )
             )
 
 
-            lines.append(
-                f"🔥 <b>{title}</b>"
+            text += (
+
+                f"🔥 <b>{title}</b>\n"
+
             )
 
 
-            if source_url:
+            if link:
 
-                lines.append(
-                    f'<a href="{source_url}">'
-                    f"🔗 {source_name}"
-                    "</a>"
+                text += (
+
+                    f'<a href="{link}">'
+                    f"🔗 {source}"
+                    f"</a>\n"
+
                 )
 
 
-            lines.append("")
+            text += "\n"
 
 
-        result = "\n".join(
-            lines
+        text += (
+
+            "━━━━━━━━━━━━━━━━━━\n"
+
+            "🧠 <b>XAU AI FUNDAMENTAL</b>\n\n"
+
+            "News difilter berdasarkan potensi "
+            "dampaknya terhadap USD dan XAUUSD.\n\n"
+
+            "⚠️ Gunakan bersama price action, "
+            "SMC dan konfirmasi market."
+
         )
 
 
-        if len(result) > 4000:
+        # =================================================
+        # BATAS TELEGRAM
+        # =================================================
 
-            result = (
-                result[:3900]
+        if len(text) > 4000:
+
+            text = (
+                text[:3900]
                 + "\n\n..."
             )
 
 
+        # =================================================
+        # GANTI LOADING MENJADI HASIL
+        # =================================================
+
         await loading.edit_text(
-            result,
+
+            text,
+
             parse_mode="HTML",
+
             disable_web_page_preview=True
+
         )
 
 
         print(
-            "✅ /news selesai."
+            "✅ /news selesai"
         )
 
 
@@ -203,18 +291,28 @@ async def news_command(message: Message):
         )
 
 
+        # =================================================
+        # ERROR MESSAGE
+        # =================================================
+
         try:
 
             await loading.edit_text(
-                "❌ <b>NEWS ENGINE ERROR</b>\n\n"
-                "Terjadi kesalahan saat mengambil berita.\n\n"
-                "🔄 Silakan coba lagi.",
+
+                "❌ <b>XAU AI NEWS ENGINE</b>\n\n"
+
+                "Terjadi kesalahan saat mengambil "
+                "atau menganalisis berita.\n\n"
+
+                "🔄 Silakan coba kembali.",
+
                 parse_mode="HTML"
+
             )
 
         except Exception as edit_error:
 
             print(
-                "❌ ERROR EDIT LOADING:",
+                "❌ Gagal mengubah loading:",
                 repr(edit_error)
             )
