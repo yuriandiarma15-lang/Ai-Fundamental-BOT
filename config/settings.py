@@ -23,6 +23,16 @@ ADMIN_USERNAME = os.getenv(
 
 
 # =========================================================
+# ADMIN CHAT
+# =========================================================
+
+ADMIN_CHAT_ID = os.getenv(
+    "ADMIN_CHAT_ID",
+    ""
+)
+
+
+# =========================================================
 # TIMEZONE
 # =========================================================
 
@@ -43,8 +53,69 @@ TWELVE_DATA_API_KEY = os.getenv(
 
 
 # =========================================================
+# FUNDAMENTAL API
+# =========================================================
+
+# ---------------------------------------------------------
+# BLS
+# CPI
+# PPI
+# Employment
+# Unemployment
+# ---------------------------------------------------------
+
+BLS_API_KEY = os.getenv(
+    "BLS_API_KEY",
+    ""
+)
+
+
+# ---------------------------------------------------------
+# BEA
+# PCE
+# GDP
+# Personal Income
+# Consumer Spending
+# ---------------------------------------------------------
+
+BEA_API_KEY = os.getenv(
+    "BEA_API_KEY",
+    ""
+)
+
+
+# ---------------------------------------------------------
+# FRED
+# Federal Reserve economic data
+# ---------------------------------------------------------
+
+FRED_API_KEY = os.getenv(
+    "FRED_API_KEY",
+    ""
+)
+
+
+# ---------------------------------------------------------
+# ALPHA VANTAGE
+# Market / economic data
+# ---------------------------------------------------------
+
+ALPHA_VANTAGE_API_KEY = os.getenv(
+    "ALPHA_VANTAGE_API_KEY",
+    ""
+)
+
+
+# =========================================================
 # ECONOMIC CALENDAR
 # =========================================================
+
+# Tidak digunakan untuk sementara.
+#
+# Trading Economics membutuhkan authorization/API key
+# untuk endpoint economic calendar.
+#
+# Jangan isi jika kita tidak menggunakannya.
 
 ECONOMIC_CALENDAR_API_KEY = os.getenv(
     "ECONOMIC_CALENDAR_API_KEY",
@@ -56,12 +127,22 @@ ECONOMIC_CALENDAR_API_KEY = os.getenv(
 # FUNDAMENTAL SETTINGS
 # =========================================================
 
-NEWS_PREPARE_MINUTES = 30
+NEWS_PREPARE_MINUTES = int(
+    os.getenv(
+        "NEWS_PREPARE_MINUTES",
+        "30"
+    )
+)
 
 
-# Minimum impact
+# =========================================================
+# IMPACT LEVEL
+# =========================================================
+
 HIGH_IMPACT = "HIGH"
+
 MEDIUM_IMPACT = "MEDIUM"
+
 LOW_IMPACT = "LOW"
 
 
@@ -76,15 +157,37 @@ SYMBOL = "XAUUSD"
 # PRICE AREA
 # =========================================================
 
-AREA_LOOKBACK = 100
+AREA_LOOKBACK = int(
+    os.getenv(
+        "AREA_LOOKBACK",
+        "100"
+    )
+)
 
-ATR_PERIOD = 14
 
-AREA_ATR_MULTIPLIER = 0.50
+ATR_PERIOD = int(
+    os.getenv(
+        "ATR_PERIOD",
+        "14"
+    )
+)
+
+
+AREA_ATR_MULTIPLIER = float(
+    os.getenv(
+        "AREA_ATR_MULTIPLIER",
+        "0.50"
+    )
+)
 
 
 # =========================================================
 # SCHEDULER
 # =========================================================
 
-SCHEDULER_INTERVAL_SECONDS = 30
+SCHEDULER_INTERVAL_SECONDS = int(
+    os.getenv(
+        "SCHEDULER_INTERVAL_SECONDS",
+        "30"
+    )
+)
