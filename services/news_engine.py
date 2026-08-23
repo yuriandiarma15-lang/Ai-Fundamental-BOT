@@ -4,7 +4,7 @@ from services.news_sources import (
 
 
 # =========================================================
-# COLLECT NEWS
+# COLLECT
 # =========================================================
 
 def collect_official_news():
@@ -15,7 +15,7 @@ def collect_official_news():
 
 
 # =========================================================
-# HIGH IMPACT KEYWORDS
+# HIGH IMPACT
 # =========================================================
 
 HIGH_IMPACT_KEYWORDS = [
@@ -23,45 +23,100 @@ HIGH_IMPACT_KEYWORDS = [
     # FED
 
     "fomc",
-    "federal reserve",
-    "fed rate",
-    "interest rate",
+
+    "federal reserve interest rate",
+
+    "fed interest rate",
+
+    "interest rate decision",
+
+    "federal funds rate",
+
     "rate decision",
+
     "monetary policy",
-    "powell",
+
+    "powell speech",
+
     "jerome powell",
 
-    # INFLATION
 
-    "cpi",
+    # CPI
+
     "consumer price index",
-    "inflation",
-    "pce",
+
+    "us cpi",
+
+    "core cpi",
+
+
+    # PCE
+
+    "personal consumption expenditures",
+
+    "pce inflation",
+
     "core pce",
-    "ppi",
-    "producer price index",
+
+
+    # NFP
+
+    "nonfarm payroll",
+
+    "non-farm payroll",
+
+    "nfp",
+
 
     # EMPLOYMENT
 
-    "nfp",
-    "nonfarm payroll",
-    "non-farm payroll",
     "unemployment rate",
-    "jobless claims",
+
     "employment report",
+
+    "initial jobless claims",
+
 
     # GDP
 
-    "gdp",
+    "us gdp",
+
     "gross domestic product",
 
-    # GOLD / USD
 
-    "gold price",
-    "gold",
-    "xauusd",
-    "us dollar",
-    "usd"
+    # RETAIL
+
+    "us retail sales",
+
+
+    # ISM
+
+    "ism manufacturing",
+
+    "ism services"
+
+]
+
+
+# =========================================================
+# MEDIUM
+# =========================================================
+
+MEDIUM_IMPACT_KEYWORDS = [
+
+    "producer price index",
+
+    "ppi",
+
+    "industrial production",
+
+    "capacity utilization",
+
+    "durable goods",
+
+    "consumer confidence",
+
+    "michigan sentiment",
 
 ]
 
@@ -72,26 +127,36 @@ HIGH_IMPACT_KEYWORDS = [
 
 EXCLUDE_KEYWORDS = [
 
-    "sports",
     "football",
+
     "soccer",
+
     "basketball",
+
+    "tennis",
+
     "celebrity",
+
     "movie",
-    "entertainment",
-    "recipe",
+
+    "music",
+
     "fashion",
-    "real estate",
-    "crypto casino"
+
+    "recipe",
+
+    "casino",
+
+    "sports betting",
 
 ]
 
 
 # =========================================================
-# CHECK HIGH IMPACT
+# CLASSIFY
 # =========================================================
 
-def is_high_impact_news(
+def classify_news(
     title,
     description=""
 ):
@@ -101,7 +166,7 @@ def is_high_impact_news(
         f"{title} "
         f"{description}"
 
-    ).lower().strip()
+    ).lower()
 
 
     # =====================================================
@@ -112,21 +177,32 @@ def is_high_impact_news(
 
         if keyword in text:
 
-            return False
+            return None
 
 
     # =====================================================
-    # HIGH IMPACT
+    # HIGH
     # =====================================================
 
     for keyword in HIGH_IMPACT_KEYWORDS:
 
         if keyword in text:
 
-            return True
+            return "HIGH"
 
 
-    return False
+    # =====================================================
+    # MEDIUM
+    # =====================================================
+
+    for keyword in MEDIUM_IMPACT_KEYWORDS:
+
+        if keyword in text:
+
+            return "MEDIUM"
+
+
+    return "LOW"
 
 
 # =========================================================
@@ -149,20 +225,22 @@ def find_high_impact_news(
             ""
         )
 
-
         description = news.get(
             "description",
             ""
         )
 
 
-        if not is_high_impact_news(
+        impact = classify_news(
 
             title,
 
             description
 
-        ):
+        )
+
+
+        if impact != "HIGH":
 
             continue
 
@@ -195,7 +273,7 @@ def find_high_impact_news(
 
 
     print(
-        f"🔥 HIGH IMPACT FILTER: "
+        f"🔥 HIGH IMPACT: "
         f"{len(results)}"
     )
 
