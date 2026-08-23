@@ -1,51 +1,166 @@
-from dataclasses import dataclass
-from datetime import datetime
+import logging
+
+from services.economic_filters import (
+    is_xau_usd_relevant,
+    get_impact
+)
+
+
+logger = logging.getLogger(__name__)
 
 
 # =========================================================
-# ECONOMIC EVENT
+# CREATE EVENT
 # =========================================================
 
-@dataclass
-class EconomicEvent:
+def create_event(
+    title,
+    event_time,
+    country="US",
+    forecast="-",
+    previous="-",
+    actual="-",
+    source_name="",
+    source_url=""
+):
+
+    if not is_xau_usd_relevant(
+        title
+    ):
+        return None
+
+
+    impact = get_impact(
+        title
+    )
+
+
+    return EconomicEvent(
+
+        title=title,
+
+        event_time=event_time,
+
+        impact=impact,
+
+        country=country,
+
+        forecast=forecast,
+
+        previous=previous,
+
+        actual=actual,
+
+        source_name=source_name,
+
+        source_url=source_url
+
+    )
+
+
+# =========================================================
+# FILTER EVENTS
+# =========================================================
+
+def filter_events(
+    events
+):
+
+    results = []
+
+
+    for event in events:
+
+        if not event:
+
+            continue
+
+
+        if event.country != "US":
+
+            continue
+
+
+        if not is_xau_usd_relevant(
+            event.title
+        ):
+
+            continue
+
+
+        if event.impact != "HIGH":
+
+            continue
+
+
+        results.append(
+            event
+        )
+
+
+    # =========================================
+    # SORT BY EVENT TIME
+    # =========================================
+
+    results.sort(
+        key=lambda x: x.event_time
+    )
+
+
+    return results
+
+
+# =========================================================
+# CALENDAR
+# =========================================================
+
+def get_economic_calendar():
+
+    """
+    Mengembalikan daftar EconomicEvent.
+
+    Untuk sekarang sumber API belum dimasukkan.
+    Fungsi ini sengaja dibuat sebagai pusat kalender
+    agar scheduler nantinya hanya memanggil satu fungsi.
+    """
+
+    events = []
+
 
     # =====================================================
-    # IDENTITAS EVENT
+    # SUMBER API AKAN DITAMBAHKAN DI SINI
     # =====================================================
 
-    title: str
-
-    event_time: datetime
-
-    impact: str
-
-    country: str = "US"
+    # BLS
+    # events.extend(
+    #     get_bls_events()
+    # )
 
 
-    # =====================================================
-    # DATA EKONOMI
-    # =====================================================
-
-    forecast: str = "-"
-
-    previous: str = "-"
-
-    actual: str = "-"
+    # BEA
+    # events.extend(
+    #     get_bea_events()
+    # )
 
 
-    # =====================================================
-    # SUMBER RESMI
-    # =====================================================
-
-    source_name: str = ""
-
-    source_url: str = ""
+    # FRED
+    # events.extend(
+    #     get_fred_events()
+    # )
 
 
-    # =====================================================
-    # STATUS PROCESS
-    # =====================================================
+    # FEDERAL RESERVE
+    # events.extend(
+    #     get_fed_events()
+    # )
 
-    processed_prepare: bool = False
 
-    processed_result: bool = False
+    # ALPHA VANTAGE
+    # events.extend(
+    #     get_alpha_events()
+    # )
+
+
+    return filter_events(
+        events
+    )
