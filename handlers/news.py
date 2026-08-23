@@ -6,7 +6,7 @@ from aiogram.filters import Command
 from aiogram.types import Message
 
 from services.news_engine import (
-    collect_official_news,
+    collect_official_news_async,
     find_high_impact_news
 )
 
@@ -16,20 +16,15 @@ router = Router()
 logger = logging.getLogger(__name__)
 
 
-# =========================================================
-# /NEWS
-# =========================================================
-
 @router.message(Command("news"))
 async def news_command(message: Message):
 
     logger.info(
-        "🔥 /news diterima dari user_id=%s",
-        message.from_user.id if message.from_user else "unknown"
+        "🔥 /news diterima"
     )
 
     # =====================================================
-    # 1. KIRIM LOADING TERLEBIH DAHULU
+    # LOADING LANGSUNG
     # =====================================================
 
     loading = await message.answer(
@@ -44,31 +39,25 @@ async def news_command(message: Message):
     )
 
     logger.info(
-        "✅ Loading /news berhasil dikirim | message_id=%s",
-        loading.message_id
+        "✅ Loading berhasil dikirim"
     )
 
     try:
 
         # =================================================
-        # 2. AMBIL DATA
+        # AMBIL NEWS PARALEL
         # =================================================
-
-        await asyncio.sleep(0.5)
 
         await loading.edit_text(
             "📰 <b>XAU AI NEWS ENGINE</b>\n\n"
-            "⏳ <b>MENGAMBIL DATA...</b>\n\n"
-            "🔄 Menghubungi sumber resmi...\n"
+            "🔄 <b>MENGAMBIL DATA RESMI...</b>\n\n"
             "🏦 Federal Reserve\n"
             "🏛️ U.S. Treasury\n"
             "📊 Bureau of Labor Statistics",
             parse_mode="HTML"
         )
 
-        news = await asyncio.to_thread(
-            collect_official_news
-        )
+        news = await collect_official_news_async()
 
         logger.info(
             "📰 Total news: %s",
@@ -76,23 +65,19 @@ async def news_command(message: Message):
         )
 
         # =================================================
-        # 3. FILTER
+        # FILTER
         # =================================================
 
         await loading.edit_text(
             "📰 <b>XAU AI NEWS ENGINE</b>\n\n"
             "✅ Data berhasil diterima.\n\n"
-            "🔎 <b>MEMFILTER NEWS...</b>\n\n"
+            "🔎 <b>MENGANALISIS...</b>\n\n"
             "💵 USD\n"
-            "🥇 GOLD / XAUUSD\n"
-            "🏦 FED\n"
-            "📊 ECONOMIC DATA\n\n"
-            "Mencari hanya berita yang "
-            "berpotensi memengaruhi Gold...",
+            "🥇 XAUUSD / GOLD\n"
+            "🏦 Federal Reserve\n"
+            "📊 Economic Data",
             parse_mode="HTML"
         )
-
-        await asyncio.sleep(0.5)
 
         high_impact = await asyncio.to_thread(
             find_high_impact_news,
@@ -105,7 +90,7 @@ async def news_command(message: Message):
         )
 
         # =================================================
-        # 4. TIDAK ADA HASIL
+        # NO NEWS
         # =================================================
 
         if not high_impact:
@@ -122,12 +107,13 @@ async def news_command(message: Message):
             return
 
         # =================================================
-        # 5. HASIL
+        # RESULT
         # =================================================
 
         text = (
             "📰 <b>XAU AI HIGH IMPACT NEWS</b>\n\n"
-            "🇺🇸 <b>NEWS RELEVAN XAUUSD / USD</b>\n\n"
+            "🇺🇸 <b>NEWS RELEVAN TERHADAP "
+            "XAUUSD / USD</b>\n\n"
         )
 
         for item in high_impact[:5]:
@@ -170,15 +156,12 @@ async def news_command(message: Message):
         text += (
             "━━━━━━━━━━━━━━━━━━\n\n"
             "🧠 <b>XAU AI FUNDAMENTAL</b>\n\n"
-            "News difilter berdasarkan potensi "
-            "dampaknya terhadap USD dan XAUUSD.\n\n"
-            "⚠️ Gunakan bersama price action, "
-            "SMC dan konfirmasi market."
+            "Berita difilter berdasarkan "
+            "potensi pengaruh terhadap USD "
+            "dan XAUUSD.\n\n"
+            "⚠️ Gunakan bersama SMC, price action "
+            "dan konfirmasi market."
         )
-
-        # =================================================
-        # 6. GANTI LOADING MENJADI HASIL
-        # =================================================
 
         await loading.edit_text(
             text,
@@ -193,23 +176,18 @@ async def news_command(message: Message):
     except Exception as e:
 
         logger.exception(
-            "❌ /news ERROR"
+            "❌ NEWS ERROR"
         )
 
         try:
 
             await loading.edit_text(
                 "❌ <b>XAU AI NEWS ENGINE</b>\n\n"
-                "Terjadi kesalahan ketika mengambil "
-                "data news.\n\n"
-                f"<code>{str(e)[:500]}</code>\n\n"
-                "🔄 Silakan coba lagi.",
+                "Gagal mengambil data news.\n\n"
+                f"<code>{str(e)[:500]}</code>",
                 parse_mode="HTML"
             )
 
-        except Exception as edit_error:
+        except Exception:
 
-            logger.exception(
-                "❌ Tidak bisa edit pesan loading: %s",
-                edit_error
-            )
+            pass
