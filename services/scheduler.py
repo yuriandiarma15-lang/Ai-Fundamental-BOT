@@ -6,7 +6,8 @@ import pytz
 
 from config.settings import (
     TIMEZONE,
-    NEWS_PREPARE_MINUTES
+    NEWS_PREPARE_MINUTES,
+    ADMIN_CHAT_ID
 )
 
 from services.news_engine import (
@@ -29,8 +30,17 @@ _processed_prepare = set()
 
 async def fundamental_scheduler(
     bot,
-    chat_id
+    chat_id=None
 ):
+
+    # =====================================================
+    # ADMIN CHAT
+    # =====================================================
+
+    if not chat_id:
+
+        chat_id = ADMIN_CHAT_ID
+
 
     print(
         "=========================================="
@@ -78,7 +88,7 @@ async def fundamental_scheduler(
 
 
             # =============================================
-            # CEK SETIAP EVENT
+            # CEK EVENT
             # =============================================
 
             for event in high_impact:
@@ -88,27 +98,29 @@ async def fundamental_scheduler(
                     ""
                 )
 
+
+                # =========================================
+                # EVENT TIME
+                # =========================================
+
                 event_time = event.get(
                     "event_time"
                 )
 
 
                 # =========================================
-                # RSS BELUM PUNYA WAKTU EVENT
+                # RSS TANPA EVENT TIME
+                #
+                # JANGAN SPAM LOG
                 # =========================================
 
                 if not event_time:
-
-                    print(
-                        "HIGH IMPACT TANPA WAKTU:",
-                        title
-                    )
 
                     continue
 
 
                 # =========================================
-                # KONVERSI WAKTU
+                # PARSE TIME
                 # =========================================
 
                 if isinstance(
@@ -133,7 +145,7 @@ async def fundamental_scheduler(
 
 
                 # =========================================
-                # PASTIKAN TIMEZONE
+                # TIMEZONE
                 # =========================================
 
                 if event_time.tzinfo is None:
@@ -142,9 +154,15 @@ async def fundamental_scheduler(
                         event_time
                     )
 
+                else:
+
+                    event_time = event_time.astimezone(
+                        WIB
+                    )
+
 
                 # =========================================
-                # HITUNG SELISIH KE NEWS
+                # HITUNG WAKTU
                 # =========================================
 
                 seconds_until_news = (
@@ -158,7 +176,16 @@ async def fundamental_scheduler(
 
 
                 # =========================================
-                # PREPARE -30 MENIT
+                # EVENT SUDAH LEWAT
+                # =========================================
+
+                if seconds_until_news < 0:
+
+                    continue
+
+
+                # =========================================
+                # PREPARE WINDOW
                 # =========================================
 
                 if (
@@ -175,7 +202,7 @@ async def fundamental_scheduler(
 
 
                     # =====================================
-                    # JANGAN KIRIM DUPLIKAT
+                    # DUPLIKAT
                     # =====================================
 
                     if event_id in _processed_prepare:
@@ -184,91 +211,117 @@ async def fundamental_scheduler(
 
 
                     print(
+                        "=========================================="
+                    )
+
+                    print(
                         "🚨 PREPARE NEWS:",
                         title
                     )
 
+                    print(
+                        "⏰ EVENT:",
+                        event_time.strftime(
+                            "%Y-%m-%d %H:%M:%S %Z"
+                        )
+                    )
+
+                    print(
+                        "=========================================="
+                    )
+
 
                     # =====================================
-                    # BUAT ANALISIS
+                    # BUAT OBJECT EVENT
+                    # =====================================
+
+                    class Event:
+                        pass
+
+
+                    prepared_event = Event()
+
+
+                    prepared_event.title = (
+                        event.get(
+                            "title",
+                            "-"
+                        )
+                    )
+
+
+                    prepared_event.event_time = (
+                        event_time
+                    )
+
+
+                    prepared_event.impact = (
+                        event.get(
+                            "impact",
+                            "HIGH"
+                        )
+                    )
+
+
+                    prepared_event.country = (
+                        event.get(
+                            "country",
+                            "US"
+                        )
+                    )
+
+
+                    prepared_event.forecast = (
+                        event.get(
+                            "forecast",
+                            "-"
+                        )
+                    )
+
+
+                    prepared_event.previous = (
+                        event.get(
+                            "previous",
+                            "-"
+                        )
+                    )
+
+
+                    prepared_event.actual = (
+                        event.get(
+                            "actual",
+                            "-"
+                        )
+                    )
+
+
+                    prepared_event.source_name = (
+                        event.get(
+                            "source_name",
+                            event.get(
+                                "source",
+                                ""
+                            )
+                        )
+                    )
+
+
+                    prepared_event.source_url = (
+                        event.get(
+                            "source_url",
+                            event.get(
+                                "link",
+                                ""
+                            )
+                        )
+                    )
+
+
+                    # =====================================
+                    # ANALISIS PREPARE
                     # =====================================
 
                     try:
-
-                        # sementara object sederhana
-                        class Event:
-                            pass
-
-
-                        prepared_event = Event()
-
-
-                        prepared_event.title = (
-                            event.get(
-                                "title",
-                                "-"
-                            )
-                        )
-
-                        prepared_event.event_time = (
-                            event_time
-                        )
-
-                        prepared_event.impact = (
-                            event.get(
-                                "impact",
-                                "HIGH"
-                            )
-                        )
-
-                        prepared_event.country = (
-                            event.get(
-                                "country",
-                                "US"
-                            )
-                        )
-
-                        prepared_event.forecast = (
-                            event.get(
-                                "forecast",
-                                "-"
-                            )
-                        )
-
-                        prepared_event.previous = (
-                            event.get(
-                                "previous",
-                                "-"
-                            )
-                        )
-
-                        prepared_event.actual = (
-                            event.get(
-                                "actual",
-                                "-"
-                            )
-                        )
-
-                        prepared_event.source_name = (
-                            event.get(
-                                "source_name",
-                                event.get(
-                                    "source",
-                                    ""
-                                )
-                            )
-                        )
-
-                        prepared_event.source_url = (
-                            event.get(
-                                "source_url",
-                                event.get(
-                                    "link",
-                                    ""
-                                )
-                            )
-                        )
-
 
                         result = await asyncio.to_thread(
                             prepare_news,
@@ -277,8 +330,17 @@ async def fundamental_scheduler(
 
 
                         # =================================
-                        # KIRIM KE ADMIN
+                        # KIRIM TELEGRAM
                         # =================================
+
+                        if not chat_id:
+
+                            print(
+                                "⚠️ ADMIN_CHAT_ID belum tersedia."
+                            )
+
+                            continue
+
 
                         await bot.send_message(
 
@@ -293,8 +355,18 @@ async def fundamental_scheduler(
                         )
 
 
+                        # =================================
+                        # TANDAI SUDAH DIKIRIM
+                        # =================================
+
                         _processed_prepare.add(
                             event_id
+                        )
+
+
+                        print(
+                            "✅ PREPARE BERHASIL DIKIRIM:",
+                            title
                         )
 
 
@@ -326,6 +398,7 @@ async def fundamental_scheduler(
                 "FUNDAMENTAL SCHEDULER ERROR:",
                 e
             )
+
 
             await asyncio.sleep(
                 30
