@@ -13,6 +13,10 @@ from services.news_result import (
     process_news_result
 )
 
+from services.economic_calendar import (
+    EconomicEvent
+)
+
 
 router = Router()
 
@@ -33,8 +37,9 @@ async def news_command(
         "⏳ Sedang mengambil berita terbaru...\n\n"
         "📡 Memeriksa sumber resmi\n"
         "🏦 Memeriksa Federal Reserve\n"
-        "📊 Memfilter High Impact News\n"
-        "🥇 Memeriksa relevansi terhadap XAUUSD\n\n"
+        "🏛️ Memeriksa Treasury\n"
+        "📊 Memeriksa BLS\n"
+        "🔥 Memfilter High Impact News\n\n"
         "Mohon tunggu sebentar...",
         parse_mode="HTML"
     )
@@ -91,12 +96,8 @@ async def news_command(
 
             lines.append("")
 
-        result = "\n".join(
-            lines
-        )
-
         await loading.edit_text(
-            result,
+            "\n".join(lines),
             parse_mode="HTML"
         )
 
@@ -128,16 +129,22 @@ async def fundamental_command(
     loading = await message.answer(
         "🧠 <b>XAU AI FUNDAMENTAL ENGINE</b>\n\n"
         "⏳ Sedang melakukan analisis...\n\n"
-        "📊 Memeriksa data fundamental\n"
-        "🏦 Memeriksa Federal Reserve\n"
-        "📈 Menganalisis kondisi ekonomi\n"
-        "🥇 Menganalisis dampaknya terhadap XAUUSD\n"
+        "📡 Mengambil berita resmi\n"
+        "🏦 Federal Reserve\n"
+        "🏛️ Treasury\n"
+        "📊 BLS\n"
+        "🧠 Menganalisis fundamental\n"
+        "🥇 Menganalisis dampak terhadap XAUUSD\n"
         "📍 Menghitung area harga\n\n"
         "Mohon tunggu sebentar...",
         parse_mode="HTML"
     )
 
     try:
+
+        # =================================================
+        # AMBIL NEWS
+        # =================================================
 
         news_list = await asyncio.to_thread(
             collect_official_news
@@ -160,9 +167,16 @@ async def fundamental_command(
             return
 
         lines = [
-            "🧠 <b>XAU AI FUNDAMENTAL ANALYSIS</b>",
+            "🧠 <b>XAU AI FUNDAMENTAL</b>",
+            "",
+            "🥇 <b>XAUUSD FUNDAMENTAL ANALYSIS</b>",
+            "━━━━━━━━━━━━━━",
             ""
         ]
+
+        # =================================================
+        # ANALISIS SETIAP NEWS
+        # =================================================
 
         for news in high_impact:
 
@@ -186,36 +200,73 @@ async def fundamental_command(
                 "-"
             )
 
+            event_time = news.get(
+                "event_time"
+            )
+
+            source_name = news.get(
+                "source_name",
+                "Official Source"
+            )
+
             source_url = news.get(
                 "source_url",
                 ""
             )
 
-            event = type(
-                "Event",
-                (),
-                {
-                    "title": title,
-                    "actual": actual,
-                    "forecast": forecast,
-                    "previous": previous
-                }
-            )()
+            # =============================================
+            # BUAT ECONOMIC EVENT
+            # =============================================
 
-            try:
+            if not event_time:
 
-                result = await asyncio.to_thread(
-                    process_news_result,
-                    event
-                )
+                from datetime import datetime
 
-            except Exception:
+                event_time = datetime.now()
 
-                result = None
+            event = EconomicEvent(
+
+                title=title,
+
+                event_time=event_time,
+
+                impact="HIGH",
+
+                country=news.get(
+                    "country",
+                    "US"
+                ),
+
+                forecast=forecast,
+
+                previous=previous,
+
+                actual=actual,
+
+                source_name=source_name,
+
+                source_url=source_url
+
+            )
+
+            # =============================================
+            # PROCESS FUNDAMENTAL
+            # =============================================
+
+            result = await asyncio.to_thread(
+                process_news_result,
+                event
+            )
+
+            # =============================================
+            # HASIL
+            # =============================================
 
             lines.append(
                 f"🔥 <b>{title}</b>"
             )
+
+            lines.append("")
 
             lines.append(
                 f"📊 Actual: {actual}"
@@ -229,6 +280,8 @@ async def fundamental_command(
                 f"📉 Previous: {previous}"
             )
 
+            lines.append("")
+
             if result:
 
                 lines.append(
@@ -237,12 +290,20 @@ async def fundamental_command(
 
             if source_url:
 
+                lines.append("")
+
                 lines.append(
                     f'<a href="{source_url}">'
-                    "Official Source</a>"
+                    f"🔗 {source_name}</a>"
                 )
 
-            lines.append("")
+            lines.append(
+                "\n━━━━━━━━━━━━━━\n"
+            )
+
+        # =================================================
+        # KIRIM HASIL
+        # =================================================
 
         final_text = "\n".join(
             lines
