@@ -1,23 +1,72 @@
-from services.news_sources import (
-    get_official_news
-)
+import asyncio
+
+from services.news_sources import get_official_news
 
 
 # =========================================================
-# OFFICIAL SOURCES
+# SOURCES
+# =========================================================
+
+NEWS_SOURCES = [
+    "FED",
+    "TREASURY",
+    "BLS",
+]
+
+
+# =========================================================
+# COLLECT NEWS
+# =========================================================
+
+async def collect_official_news_async():
+
+    tasks = [
+        asyncio.to_thread(
+            get_official_news,
+            source
+        )
+        for source in NEWS_SOURCES
+    ]
+
+    results = await asyncio.gather(
+        *tasks,
+        return_exceptions=True
+    )
+
+    all_news = []
+
+    for source, result in zip(
+        NEWS_SOURCES,
+        results
+    ):
+
+        if isinstance(result, Exception):
+
+            print(
+                f"❌ NEWS ERROR [{source}]:",
+                repr(result)
+            )
+
+            continue
+
+        if result:
+
+            all_news.extend(
+                result
+            )
+
+    return all_news
+
+
+# =========================================================
+# SYNC VERSION
 # =========================================================
 
 def collect_official_news():
 
-    sources = [
-        "FED",
-        "TREASURY",
-        "BLS"
-    ]
-
     all_news = []
 
-    for source in sources:
+    for source in NEWS_SOURCES:
 
         try:
 
@@ -34,8 +83,8 @@ def collect_official_news():
         except Exception as e:
 
             print(
-                f"NEWS SOURCE ERROR [{source}]:",
-                e
+                f"❌ NEWS SOURCE ERROR [{source}]:",
+                repr(e)
             )
 
     return all_news
@@ -43,228 +92,114 @@ def collect_official_news():
 
 # =========================================================
 # HIGH IMPACT KEYWORDS
-# KHUSUS YANG RELEVAN TERHADAP USD / XAUUSD
 # =========================================================
 
 HIGH_IMPACT_KEYWORDS = [
 
-    # =====================================================
-    # FED / MONETARY POLICY
-    # =====================================================
-
     "fomc",
-
     "fomc meeting",
-
     "fomc statement",
-
     "fomc minutes",
 
     "federal funds rate",
-
-    "federal funds",
-
     "interest rate decision",
-
     "interest rate",
-
     "fed rate",
-
     "rate decision",
 
     "monetary policy",
 
-    "monetary policy statement",
-
     "powell",
-
     "jerome powell",
-
     "fed chair",
-
     "fed chairman",
-
-    "fed speech",
-
-    "federal reserve speech",
 
     "beige book",
 
-
-    # =====================================================
-    # INFLATION
-    # =====================================================
-
     "consumer price index",
-
     "cpi",
-
     "core cpi",
 
-    "inflation",
-
-    "pce",
-
-    "core pce",
-
-    "personal consumption expenditures",
-
     "producer price index",
-
     "ppi",
-
     "core ppi",
 
-
-    # =====================================================
-    # EMPLOYMENT
-    # =====================================================
+    "pce",
+    "core pce",
+    "personal consumption expenditures",
 
     "nonfarm payroll",
-
     "non-farm payroll",
-
-    "nonfarm employment",
-
     "nfp",
 
     "unemployment rate",
-
-    "unemployment",
-
+    "employment situation",
     "employment report",
 
-    "employment situation",
-
     "jobless claims",
-
     "initial jobless claims",
-
     "continuing jobless claims",
-
-    "adp employment",
-
-    "adp national employment",
 
     "average hourly earnings",
 
-    "hourly earnings",
-
-
-    # =====================================================
-    # ECONOMIC GROWTH
-    # =====================================================
-
     "gross domestic product",
-
     "gdp",
 
     "retail sales",
-
-    "core retail sales",
-
     "durable goods",
-
-    "durable goods orders",
 
     "industrial production",
 
-    "capacity utilization",
-
-
-    # =====================================================
-    # BUSINESS ACTIVITY
-    # =====================================================
-
     "ism manufacturing",
-
     "ism services",
-
-    "ism non-manufacturing",
 
     "pmi",
 
-    "manufacturing pmi",
-
-    "services pmi",
-
-
-    # =====================================================
-    # CONSUMER / ECONOMIC SENTIMENT
-    # =====================================================
-
     "consumer confidence",
-
     "consumer sentiment",
-
     "michigan consumer sentiment",
-
-    "michigan sentiment",
-
 ]
 
 
 # =========================================================
-# EXCLUDE KEYWORDS
-#
-# Berita yang mengandung kata FED tetapi bukan economic
-# event yang relevan terhadap XAUUSD.
+# EXCLUDE
 # =========================================================
 
 EXCLUDE_KEYWORDS = [
 
     "enforcement action",
-
     "enforcement actions",
-
     "former employee",
 
     "bank application",
-
     "application by",
-
     "approval of application",
-
     "approves application",
 
     "bank holding company",
-
     "acquisition",
-
     "merger",
-
     "branch",
 
     "consent order",
-
     "cease and desist",
-
     "civil money penalty",
-
     "regulatory action",
 
     "banking organization",
-
-    "bank holding",
-
     "financial institution",
 
     "deutsche bank",
-
     "national westminster",
-
     "bancshares",
-
 ]
 
 
 # =========================================================
-# CHECK HIGH IMPACT
+# CHECK
 # =========================================================
 
-def is_high_impact_news(
-    title
-):
+def is_high_impact_news(title):
 
     if not title:
 
@@ -276,19 +211,11 @@ def is_high_impact_news(
         .strip()
     )
 
-    # =====================================================
-    # EXCLUDE TERLEBIH DAHULU
-    # =====================================================
-
     for keyword in EXCLUDE_KEYWORDS:
 
         if keyword in text:
 
             return False
-
-    # =====================================================
-    # HIGH IMPACT
-    # =====================================================
 
     for keyword in HIGH_IMPACT_KEYWORDS:
 
@@ -300,12 +227,10 @@ def is_high_impact_news(
 
 
 # =========================================================
-# FIND HIGH IMPACT NEWS
+# FIND
 # =========================================================
 
-def find_high_impact_news(
-    news_list
-):
+def find_high_impact_news(news_list):
 
     results = []
 
@@ -324,27 +249,19 @@ def find_high_impact_news(
 
             continue
 
-        # =================================================
-        # HINDARI DUPLICATE
-        # =================================================
-
-        normalized_title = (
+        normalized = (
             title
             .lower()
             .strip()
         )
 
-        if normalized_title in seen:
+        if normalized in seen:
 
             continue
 
         seen.add(
-            normalized_title
+            normalized
         )
-
-        # =================================================
-        # MARK HIGH IMPACT
-        # =================================================
 
         news["impact"] = "HIGH"
 
