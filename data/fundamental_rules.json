@@ -1,0 +1,36 @@
+{
+    "bullish_gold": [
+        "lower than forecast",
+        "below forecast",
+        "dovish",
+        "rate cut",
+        "cut rates",
+        "weak employment",
+        "weak jobs",
+        "unemployment rises",
+        "inflation falls",
+        "cpi lower",
+        "pce lower",
+        "usd weak",
+        "dollar weak",
+        "yield falls",
+        "yields fall"
+    ],
+    "bearish_gold": [
+        "higher than forecast",
+        "above forecast",
+        "hawkish",
+        "rate hike",
+        "raise rates",
+        "strong employment",
+        "strong jobs",
+        "unemployment falls",
+        "inflation rises",
+        "cpi higher",
+        "pce higher",
+        "usd strong",
+        "dollar strong",
+        "yield rises",
+        "yields rise"
+    ]
+}
