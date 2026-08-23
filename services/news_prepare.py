@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 from services.price_area import (
     calculate_price_area
 )
@@ -13,15 +11,45 @@ from services.signal_formatter import (
 )
 
 
+# =========================================================
+# PREPARE HIGH IMPACT NEWS
+# =========================================================
+
 def prepare_news(
     event
 ):
 
-    fundamental = analyze_text(
-        event.title
+    # =====================================================
+    # ANALISIS FUNDAMENTAL
+    # =====================================================
+
+    text = (
+
+        f"{event.title} "
+
+        f"Actual {getattr(event, 'actual', '-')} "
+
+        f"Forecast {getattr(event, 'forecast', '-')} "
+
+        f"Previous {getattr(event, 'previous', '-')}"
     )
 
+
+    fundamental = analyze_text(
+        text
+    )
+
+
+    # =====================================================
+    # HITUNG AREA HARGA XAUUSD
+    # =====================================================
+
     area = calculate_price_area()
+
+
+    # =====================================================
+    # FORMAT TELEGRAM
+    # =====================================================
 
     return format_prepare(
         event,
