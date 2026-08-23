@@ -18,6 +18,10 @@ from handlers.signal import (
     router as signal_router
 )
 
+from handlers.news import (
+    router as news_router
+)
+
 from services.scheduler import (
     fundamental_scheduler
 )
@@ -36,6 +40,7 @@ async def main():
             "BOT_TOKEN belum diisi."
         )
 
+
     print(
         "=========================================="
     )
@@ -48,19 +53,33 @@ async def main():
         "=========================================="
     )
 
+
     bot = Bot(
         token=BOT_TOKEN
     )
 
+
     dp = Dispatcher()
+
+
+    # =========================================
+    # HANDLERS
+    # =========================================
 
     dp.include_router(
         start_router
     )
 
+
     dp.include_router(
         signal_router
     )
+
+
+    dp.include_router(
+        news_router
+    )
+
 
     # =========================================
     # FUNDAMENTAL SCHEDULER
@@ -73,6 +92,7 @@ async def main():
         )
     )
 
+
     print(
         "📰 FUNDAMENTAL ENGINE ACTIVE"
     )
@@ -81,10 +101,19 @@ async def main():
         "⏰ HIGH IMPACT PREPARE ACTIVE"
     )
 
+
+    # =========================================
+    # TELEGRAM POLLING
+    # =========================================
+
     await dp.start_polling(
         bot
     )
 
+
+# =============================================
+# START BOT
+# =============================================
 
 if __name__ == "__main__":
 
