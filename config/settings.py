@@ -15,7 +15,6 @@ BOT_TOKEN = os.getenv(
     ""
 )
 
-
 ADMIN_USERNAME = os.getenv(
     "ADMIN_USERNAME",
     ""
@@ -53,14 +52,8 @@ TWELVE_DATA_API_KEY = os.getenv(
 
 
 # =========================================================
-# FUNDAMENTAL API
-# =========================================================
-
-
-# ---------------------------------------------------------
 # GNEWS
-# Berita terbaru yang berhubungan dengan USD / XAU
-# ---------------------------------------------------------
+# =========================================================
 
 GNEWS_API_KEY = os.getenv(
     "GNEWS_API_KEY",
@@ -68,49 +61,24 @@ GNEWS_API_KEY = os.getenv(
 )
 
 
-# ---------------------------------------------------------
-# BLS
-# CPI
-# PPI
-# Employment
-# Unemployment
-# ---------------------------------------------------------
+# =========================================================
+# FUNDAMENTAL API
+# =========================================================
 
 BLS_API_KEY = os.getenv(
     "BLS_API_KEY",
     ""
 )
 
-
-# ---------------------------------------------------------
-# BEA
-# PCE
-# GDP
-# Personal Income
-# Consumer Spending
-# ---------------------------------------------------------
-
 BEA_API_KEY = os.getenv(
     "BEA_API_KEY",
     ""
 )
 
-
-# ---------------------------------------------------------
-# FRED
-# Federal Reserve Economic Data
-# ---------------------------------------------------------
-
 FRED_API_KEY = os.getenv(
     "FRED_API_KEY",
     ""
 )
-
-
-# ---------------------------------------------------------
-# ALPHA VANTAGE
-# Market / economic data
-# ---------------------------------------------------------
 
 ALPHA_VANTAGE_API_KEY = os.getenv(
     "ALPHA_VANTAGE_API_KEY",
@@ -121,18 +89,6 @@ ALPHA_VANTAGE_API_KEY = os.getenv(
 # =========================================================
 # ECONOMIC CALENDAR
 # =========================================================
-
-# Tidak digunakan untuk sementara.
-#
-# Economic Calendar berbayar tidak digunakan.
-#
-# Kita menggunakan:
-# GNews  -> berita
-# BLS    -> data ekonomi
-# BEA    -> PCE / GDP
-# FRED   -> data Federal Reserve
-#
-# Untuk saat ini tidak perlu API Calendar.
 
 ECONOMIC_CALENDAR_API_KEY = os.getenv(
     "ECONOMIC_CALENDAR_API_KEY",
@@ -153,7 +109,35 @@ NEWS_PREPARE_MINUTES = int(
 
 
 # =========================================================
-# IMPACT LEVEL
+# NEWS REFRESH
+#
+# GNews hanya dipanggil 1x setiap 60 menit
+# =========================================================
+
+NEWS_REFRESH_SECONDS = int(
+    os.getenv(
+        "NEWS_REFRESH_SECONDS",
+        "3600"
+    )
+)
+
+
+# =========================================================
+# SCHEDULER
+#
+# Internal checking tetap setiap 30 detik
+# =========================================================
+
+SCHEDULER_INTERVAL_SECONDS = int(
+    os.getenv(
+        "SCHEDULER_INTERVAL_SECONDS",
+        "30"
+    )
+)
+
+
+# =========================================================
+# IMPACT
 # =========================================================
 
 HIGH_IMPACT = "HIGH"
@@ -181,7 +165,6 @@ AREA_LOOKBACK = int(
     )
 )
 
-
 ATR_PERIOD = int(
     os.getenv(
         "ATR_PERIOD",
@@ -189,22 +172,9 @@ ATR_PERIOD = int(
     )
 )
 
-
 AREA_ATR_MULTIPLIER = float(
     os.getenv(
         "AREA_ATR_MULTIPLIER",
         "0.50"
-    )
-)
-
-
-# =========================================================
-# SCHEDULER
-# =========================================================
-
-SCHEDULER_INTERVAL_SECONDS = int(
-    os.getenv(
-        "SCHEDULER_INTERVAL_SECONDS",
-        "30"
     )
 )
