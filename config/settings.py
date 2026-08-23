@@ -56,6 +56,18 @@ TWELVE_DATA_API_KEY = os.getenv(
 # FUNDAMENTAL API
 # =========================================================
 
+
+# ---------------------------------------------------------
+# GNEWS
+# Berita terbaru yang berhubungan dengan USD / XAU
+# ---------------------------------------------------------
+
+GNEWS_API_KEY = os.getenv(
+    "GNEWS_API_KEY",
+    ""
+)
+
+
 # ---------------------------------------------------------
 # BLS
 # CPI
@@ -86,7 +98,7 @@ BEA_API_KEY = os.getenv(
 
 # ---------------------------------------------------------
 # FRED
-# Federal Reserve economic data
+# Federal Reserve Economic Data
 # ---------------------------------------------------------
 
 FRED_API_KEY = os.getenv(
@@ -112,10 +124,15 @@ ALPHA_VANTAGE_API_KEY = os.getenv(
 
 # Tidak digunakan untuk sementara.
 #
-# Trading Economics membutuhkan authorization/API key
-# untuk endpoint economic calendar.
+# Economic Calendar berbayar tidak digunakan.
 #
-# Jangan isi jika kita tidak menggunakannya.
+# Kita menggunakan:
+# GNews  -> berita
+# BLS    -> data ekonomi
+# BEA    -> PCE / GDP
+# FRED   -> data Federal Reserve
+#
+# Untuk saat ini tidak perlu API Calendar.
 
 ECONOMIC_CALENDAR_API_KEY = os.getenv(
     "ECONOMIC_CALENDAR_API_KEY",
