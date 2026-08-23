@@ -14,6 +14,86 @@ router = Router()
 
 
 # =========================================================
+# LOADING ANIMATION
+# =========================================================
+
+async def loading_animation(
+    message: Message,
+    stop_event: asyncio.Event
+):
+
+    loading_messages = [
+
+        (
+            "📰 <b>XAU AI NEWS ENGINE</b>\n\n"
+            "⏳ Menghubungkan ke sumber berita resmi..."
+        ),
+
+        (
+            "📰 <b>XAU AI NEWS ENGINE</b>\n\n"
+            "📡 Mengambil berita terbaru..."
+        ),
+
+        (
+            "📰 <b>XAU AI NEWS ENGINE</b>\n\n"
+            "🏦 Memeriksa Federal Reserve..."
+        ),
+
+        (
+            "📰 <b>XAU AI NEWS ENGINE</b>\n\n"
+            "📊 Memeriksa data ekonomi AS..."
+        ),
+
+        (
+            "📰 <b>XAU AI NEWS ENGINE</b>\n\n"
+            "🥇 Menganalisis relevansi terhadap XAUUSD..."
+        ),
+
+        (
+            "📰 <b>XAU AI NEWS ENGINE</b>\n\n"
+            "🔥 Memfilter High Impact News..."
+        ),
+
+    ]
+
+
+    index = 0
+
+
+    while not stop_event.is_set():
+
+        try:
+
+            await message.edit_text(
+                loading_messages[index],
+                parse_mode="HTML"
+            )
+
+        except Exception:
+
+            pass
+
+
+        index = (
+            index + 1
+        ) % len(
+            loading_messages
+        )
+
+
+        try:
+
+            await asyncio.wait_for(
+                stop_event.wait(),
+                timeout=1.5
+            )
+
+        except asyncio.TimeoutError:
+
+            pass
+
+
+# =========================================================
 # /NEWS
 # =========================================================
 
@@ -25,31 +105,48 @@ async def news_command(
 ):
 
     # =====================================================
-    # LOADING AWAL
+    # LANGSUNG BALAS
     # =====================================================
 
     loading = await message.answer(
+
         "📰 <b>XAU AI NEWS ENGINE</b>\n\n"
-        "⏳ <b>Memulai proses...</b>\n\n"
-        "🔄 Mohon tunggu...",
+
+        "⏳ <b>Memulai analisis...</b>\n\n"
+
+        "📡 Menghubungkan ke sumber resmi...\n"
+        "🏦 Federal Reserve\n"
+        "🏛️ U.S. Treasury\n"
+        "📊 Bureau of Labor Statistics\n\n"
+
+        "Mohon tunggu..."
+
+        ,
+
         parse_mode="HTML"
     )
+
+
+    # =====================================================
+    # START ANIMATION
+    # =====================================================
+
+    stop_loading = asyncio.Event()
+
+
+    loading_task = asyncio.create_task(
+        loading_animation(
+            loading,
+            stop_loading
+        )
+    )
+
 
     try:
 
         # =================================================
-        # STEP 1
+        # AMBIL NEWS
         # =================================================
-
-        await loading.edit_text(
-            "📰 <b>XAU AI NEWS ENGINE</b>\n\n"
-            "⏳ <b>Mengambil berita terbaru...</b>\n\n"
-            "📡 Menghubungi sumber resmi\n"
-            "🏦 Memeriksa Federal Reserve\n"
-            "📊 Memeriksa BLS\n\n"
-            "🔄 Sedang memproses...",
-            parse_mode="HTML"
-        )
 
         news_list = await asyncio.to_thread(
             collect_official_news
@@ -57,18 +154,8 @@ async def news_command(
 
 
         # =================================================
-        # STEP 2
+        # FILTER HIGH IMPACT
         # =================================================
-
-        await loading.edit_text(
-            "📰 <b>XAU AI NEWS ENGINE</b>\n\n"
-            "✅ Berita berhasil diterima\n\n"
-            "🔍 <b>Memfilter berita...</b>\n\n"
-            "🇺🇸 Memeriksa berita USD\n"
-            "🥇 Memeriksa relevansi XAUUSD\n"
-            "🔥 Memeriksa High Impact...",
-            parse_mode="HTML"
-        )
 
         high_impact = await asyncio.to_thread(
             find_high_impact_news,
@@ -77,16 +164,29 @@ async def news_command(
 
 
         # =================================================
-        # NO NEWS
+        # HENTIKAN LOADING
+        # =================================================
+
+        stop_loading.set()
+
+        await loading_task
+
+
+        # =================================================
+        # TIDAK ADA NEWS
         # =================================================
 
         if not high_impact:
 
             await loading.edit_text(
+
                 "📰 <b>XAU AI NEWS ENGINE</b>\n\n"
-                "✅ <b>Proses selesai</b>\n\n"
-                "⚪ Tidak ditemukan High Impact News "
-                "yang relevan dengan XAUUSD.",
+
+                "✅ Analisis selesai.\n\n"
+
+                "Tidak ditemukan High Impact News "
+                "yang relevan terhadap XAUUSD saat ini.",
+
                 parse_mode="HTML"
             )
 
@@ -94,26 +194,14 @@ async def news_command(
 
 
         # =================================================
-        # STEP 3
-        # =================================================
-
-        await loading.edit_text(
-            "📰 <b>XAU AI NEWS ENGINE</b>\n\n"
-            "✅ Berita ditemukan\n"
-            f"🔥 High Impact: <b>{len(high_impact)}</b>\n\n"
-            "🧠 Menyiapkan hasil...\n"
-            "📊 Menyusun data...\n"
-            "⏳ Hampir selesai...",
-            parse_mode="HTML"
-        )
-
-
-        # =================================================
-        # BUILD RESULT
+        # HASIL
         # =================================================
 
         lines = [
-            "📰 <b>HIGH IMPACT NEWS</b>",
+
+            "📰 <b>XAU AI HIGH IMPACT NEWS</b>",
+            "",
+            "🇺🇸 <b>US / USD RELATED NEWS</b>",
             ""
         ]
 
@@ -125,17 +213,23 @@ async def news_command(
                 "-"
             )
 
+
             source_url = news.get(
                 "source_url",
-                ""
-            )
-
-            if not source_url:
-
-                source_url = news.get(
+                news.get(
                     "link",
                     ""
                 )
+            )
+
+
+            source_name = news.get(
+                "source_name",
+                news.get(
+                    "source",
+                    "Official Source"
+                )
+            )
 
 
             lines.append(
@@ -146,8 +240,11 @@ async def news_command(
             if source_url:
 
                 lines.append(
+
                     f'<a href="{source_url}">'
-                    "🔗 Official Source</a>"
+                    f"🔗 {source_name}"
+                    "</a>"
+
                 )
 
 
@@ -160,12 +257,28 @@ async def news_command(
 
 
         # =================================================
-        # FINAL RESULT
+        # TELEGRAM LIMIT
         # =================================================
 
+        # Telegram maksimal sekitar 4096 karakter.
+        # Kita batasi supaya tidak error.
+
+        if len(result) > 4000:
+
+            result = (
+                result[:3900]
+                + "\n\n..."
+            )
+
+
         await loading.edit_text(
+
             result,
-            parse_mode="HTML"
+
+            parse_mode="HTML",
+
+            disable_web_page_preview=True
+
         )
 
 
@@ -173,13 +286,30 @@ async def news_command(
 
         print(
             "NEWS ERROR:",
-            e
+            repr(e)
         )
 
 
+        stop_loading.set()
+
+
+        try:
+
+            await loading_task
+
+        except Exception:
+
+            pass
+
+
         await loading.edit_text(
-            "❌ <b>NEWS ENGINE ERROR</b>\n\n"
-            "Bot mengalami masalah saat mengambil berita.\n\n"
-            "🔄 Silakan coba lagi.",
+
+            "❌ <b>XAU AI NEWS ENGINE ERROR</b>\n\n"
+
+            "Terjadi masalah saat mengambil berita.\n\n"
+
+            "🔄 Silakan coba kembali.",
+
             parse_mode="HTML"
+
         )
